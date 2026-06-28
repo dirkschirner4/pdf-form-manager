@@ -1,1 +1,6 @@
-
+git init
+git add .
+git commit -m "feat: initial commit pdf form manager with docker stack"
+git remote add origin https://github.com/dirkschirner4/pdf-form-manager.git
+git branch -M main
+git push -u origin main
