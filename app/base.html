@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Form Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">📄 PDF Form Manager</a>
+            <div class="d-flex align-items-center">
+                {% if stirling_online %}
+                    <span class="badge bg-success">Stirling PDF: Verbunden</span>
+                {% else %}
+                    <span class="badge bg-secondary" title="Gefundene IP: {{ stirling_url }}">Stirling PDF: Offline</span>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">Neue PDF Vorlage hochladen</div>
+                    <div class="card-body">
+                        <form action="{{ url_for('upload_pdf') }}" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input class="form-control" type="file" name="pdf_file" accept=".pdf" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Upload</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">Vorlagen & Profile</div>
+                    <div class="card-body">
+                        <h5>1. PDF Vorlage wählen</h5>
+                        <select class="form-select mb-3" id="pdfSelect">
+                            <option value="" selected disabled>-- Bitte wählen --</option>
+                            {% for pdf in pdfs %}
+                                <option value="{{ pdf }}">{{ pdf }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <h5>2. Profil laden (Optional)</h5>
+                        <select class="form-select mb-3" id="profileSelect" disabled>
+                            <option value="" selected disabled>-- Profil wählen --</option>
+                            {% for profile in profiles %}
+                                <option value="{{ profile }}">{{ profile }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span>Formularfelder befüllen</span>
+                        <div id="actionButtons" style="display: none;">
+                            <button class="btn btn-sm btn-outline-light me-2" id="btnSaveProfile">Profil Speichern</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="noPdfMessage" class="text-muted text-center py-5">
+                            Bitte wähle links eine PDF-Vorlage aus, um die interaktiven Felder zu laden.
+                        </div>
+
+                        <form id="pdfForm" action="{{ url_for('generate_pdf') }}" method="POST" style="display: none;">
+                            <input type="hidden" name="selected_pdf" id="hiddenPdfName">
+                            <input type="hidden" name="field_data" id="hiddenFieldData">
+                            
+                            <div id="dynamicFieldsContainer" class="row">
+                                </div>
+
+                            <hr>
+                            <button type="submit" class="btn btn-success btn-lg w-100">PDF generieren & herunterladen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="saveProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Profil speichern</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="profileNameInput" class="form-label">Profilname (z.B. steuer_2026)</label>
+                        <input type="text" class="form-control" id="profileNameInput" placeholder="name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn border" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmSaveProfile">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
